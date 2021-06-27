@@ -11,10 +11,10 @@ from urllib.error import HTTPError, URLError
 
 
 class DailyTransaction(object):
-    EOD_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.Raw.{}.zip'
-    UP_TO_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.Raw.Upto{}.zip'
-    EOD_FILE_FORMAT = 'CafeF.RAW_{}.{}.{}.{}.csv'
-    UPTO_FILE_FORMAT = 'CafeF.RAW_{}.Upto{}.{}.{}.csv'
+    EOD_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.{}.zip'
+    UP_TO_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.Upto{}.zip'
+    EOD_FILE_FORMAT = 'CafeF.{}.{}.{}.{}.csv'
+    UPTO_FILE_FORMAT = 'CafeF.{}.Upto{}.{}.{}.csv'
     EOD_INDEX_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.Index.{}.zip'
     UPTO_INDEX_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.Index.Upto{}.zip'
     EOD_INDEX_FILE_FORMAT_URL = 'CafeF.INDEX.{}.{}.{}.csv'
@@ -80,23 +80,8 @@ class DailyTransaction(object):
         df['date'] = df['date'].apply(str)
         df['date'] = pd.to_datetime(df['date'])
 
-        # perform update on row
-        for index, row in df.iterrows():
-            query = text(f""" 
-                INSERT INTO {self.schema}.{self.index_table}
-                VALUES ( 
-                    '{row["stock_index"]}', 
-                    '{row["date"].strftime('%Y-%m-%d')}',
-                    {row["open_price"]},
-                    {row["highest_price"]},
-                    {row["lowest_price"]},
-                    {row["close_price"]},
-                    {row["volume"]}
-                )
-                ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
-            self.engine.execute(query)
-            print(f"{index + 1} rows updated")
-
+        df.to_sql(self.index_table, self.engine, self.schema, if_exists = 'append', index = False)
+        print("Finished updating stock indexdata")
         return True
 
     def _crawl(self, date, mode = 'eod'):
@@ -156,27 +141,8 @@ class DailyTransaction(object):
             df['date'] = df['date'].apply(str)
             df['date'] = pd.to_datetime(df['date'])
 
-            # perform update on row
-            for index, row in df.iterrows():
-                query = text(f""" 
-                    INSERT INTO {self.schema}.{self.table}
-                    VALUES (
-                        '{stock_exchange}', 
-                        '{row["stock_code"]}', 
-                        '{row["date"].strftime('%Y-%m-%d')}',
-                        {row["open_price"]},
-                        {row["highest_price"]},
-                        {row["lowest_price"]},
-                        {row["close_price"]},
-                        {row["volume"]}
-                    )
-                    ON CONFLICT ON CONSTRAINT transaction_unique_key DO NOTHING;""")
-                try:
-                    self.engine.execute(query)
-                except exc.IntegrityError:
-                    print(f"Foreign key constraint. Stock code {row['stock_code']} removed due to violation")
-                    continue
-                print(f"{index + 1} rows updated")
+            df.to_sql(self.table, self.engine, self.schema, if_exists = 'append', index = False)
+            print(f"Finished uploading data for stock exchange {stock_echange}")
 
         return True
 
