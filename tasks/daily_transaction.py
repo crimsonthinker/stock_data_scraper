@@ -80,8 +80,21 @@ class DailyTransaction(object):
         df['date'] = df['date'].apply(str)
         df['date'] = pd.to_datetime(df['date'])
 
-        df.to_sql(self.index_table, self.engine, self.schema, if_exists = 'append', index = False)
-        print("Finished updating stock indexdata")
+        for index, row in df.iterrows():
+            query = text(f""" 
+                INSERT INTO {self.schema}.{self.index_table}
+                VALUES ( 
+                    '{row["stock_index"]}', 
+                    '{row["date"].strftime('%Y-%m-%d')}',
+                    {row["open_price"]},
+                    {row["highest_price"]},
+                    {row["lowest_price"]},
+                    {row["close_price"]},
+                    {row["volume"]}
+                )
+                ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
+            self.engine.execute(query)
+            print(f"Index: {index + 1} rows updated")
         return True
 
     def _crawl(self, date, mode = 'eod'):
@@ -141,8 +154,27 @@ class DailyTransaction(object):
             df['date'] = df['date'].apply(str)
             df['date'] = pd.to_datetime(df['date'])
 
-            df.to_sql(self.table, self.engine, self.schema, if_exists = 'append', index = False)
-            print(f"Finished uploading data for stock exchange {stock_echange}")
+            # perform update on row
+            for index, row in df.iterrows():
+                query = text(f""" 
+                    INSERT INTO {self.schema}.{self.table}
+                    VALUES (
+                        '{stock_exchange}', 
+                        '{row["stock_code"]}', 
+                        '{row["date"].strftime('%Y-%m-%d')}',
+                        {row["open_price"]},
+                        {row["highest_price"]},
+                        {row["lowest_price"]},
+                        {row["close_price"]},
+                        {row["volume"]}
+                    )
+                    ON CONFLICT ON CONSTRAINT transaction_unique_key DO NOTHING;""")
+                try:
+                    self.engine.execute(query)
+                except exc.IntegrityError:
+                    print(f"Foreign key constraint. Stock code {row['stock_code']} removed due to violation")
+                    continue
+                print(f"{stock_exchange}: {index + 1} rows updated")
 
         return True
 
