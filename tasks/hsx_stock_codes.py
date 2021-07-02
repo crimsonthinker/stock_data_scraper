@@ -58,7 +58,7 @@ class HNXStocks(object):
             # find table
             table = self._soup.find("table", {'id' : self._content_id})
             # for each row
-            for row in table.find_all('tr', {'role' : 'row'}):
+            for row in table.find_all('tr', {'role' : 'row'})[1:]:
                 #extract cells to get company's information
                 cells = row.find_all('td', {'role' : 'gridcell'})
                 company = {name : cell.getText() for name, cell in zip(HNXStocks.HNX_STOCK_LIST_HEADER, cells)}

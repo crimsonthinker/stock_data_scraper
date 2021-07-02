@@ -64,7 +64,7 @@ class DailyTransaction(object):
         if mode == 'eod':
             file_path = DailyTransaction.EOD_INDEX_FILE_FORMAT_URL.format(day, month, year)
         else:
-            file_path = DailyTransaction.EOD_INDEX_FILE_FORMAT_URL.format(day, month, year)
+            file_path = DailyTransaction.UPTO_INDEX_FILE_FORMAT_URL.format(day, month, year)
         file_path = os.path.join(zip_folder, file_path)
         df = pd.read_csv(file_path)
         #rename columns
@@ -84,7 +84,7 @@ class DailyTransaction(object):
             query = text(f""" 
                 INSERT INTO {self.schema}.{self.index_table}
                 VALUES ( 
-                    '{row["stock_index"]}', 
+                    '{row["stock_index"].upper()}', 
                     '{row["date"].strftime('%Y-%m-%d')}',
                     {row["open_price"]},
                     {row["highest_price"]},
@@ -94,6 +94,7 @@ class DailyTransaction(object):
                 )
                 ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
             self.engine.execute(query)
+
             print(f"Index: {index + 1} rows updated")
         return True
 
@@ -194,7 +195,17 @@ class DailyTransaction(object):
                 found_last_updated_day = self._crawl(end_date, mode = 'upto')
                 if not found_last_updated_day:
                     end_date = end_date - timedelta(days = 1)
+        else:
+            begin_date = df['max'].iloc[0]
+            end_date = datetime.today().date()
+            while begin_date < end_date:
+                # change to next day and begin crawling data
+                begin_date = begin_date + timedelta(days = 1)
+                self._crawl(begin_date)
 
+        query = f"SELECT MAX(date) FROM {self.schema}.{self.index_table}"
+        df = pd.read_sql_query(query, self.engine)
+        if df['max'].iloc[0] is None: # first time initializing the table -> no content -> need to crawl data from up to today
             end_date = datetime.today()
             found_last_updated_day = False
             while not found_last_updated_day:
@@ -207,7 +218,6 @@ class DailyTransaction(object):
             while begin_date < end_date:
                 # change to next day and begin crawling data
                 begin_date = begin_date + timedelta(days = 1)
-                self._crawl(begin_date)
                 self._crawl_index(begin_date)
 
 
