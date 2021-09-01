@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "/home/khoa/anaconda3/envs/investment/bin/python"
+    "python.pythonPath": "/home/khoa/anaconda3/envs/investment/bin/python",
+    "jupyter.notebookFileRoot": "${workspaceFolder}"
 }

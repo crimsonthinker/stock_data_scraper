@@ -80,22 +80,62 @@ class DailyTransaction(object):
         df['date'] = df['date'].apply(str)
         df['date'] = pd.to_datetime(df['date'])
 
-        for index, row in df.iterrows():
-            query = text(f""" 
-                INSERT INTO {self.schema}.{self.index_table}
-                VALUES ( 
-                    '{row["stock_index"].upper()}', 
-                    '{row["date"].strftime('%Y-%m-%d')}',
-                    {row["open_price"]},
-                    {row["highest_price"]},
-                    {row["lowest_price"]},
-                    {row["close_price"]},
-                    {row["volume"]}
-                )
-                ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
-            self.engine.execute(query)
+        query = f"""SELECT DISTINCT(date) AS date 
+            FROM {self.schema}.{self.index_table} 
+            WHERE 
+                date <= DATE '{date}'
+        """
+        exists = pd.read_sql_query(query, self.engine)
+        if len(exists) > 0:
+            exist_dates = exists['date'].sort_values()
+            begin_date = None
+            print("Updating missing data")
+            for e in exist_dates:
+                if begin_date is None:
+                    begin_date = e
+                else:
+                    for _ in range(1,(e - begin_date).days):
+                        begin_date = begin_date + timedelta(days = 1)
+                        print(f"Update missing index on date {begin_date}")
+                        update_df = df[df['date'] == begin_date.strftime('%Y-%m-%d')]
+                        # perform update on row
+                        for index, row in update_df.iterrows():
+                            query = text(f""" 
+                                INSERT INTO {self.schema}.{self.index_table}
+                                VALUES ( 
+                                    '{row["stock_index"].upper()}', 
+                                    '{row["date"].strftime('%Y-%m-%d')}',
+                                    {row["open_price"]},
+                                    {row["highest_price"]},
+                                    {row["lowest_price"]},
+                                    {row["close_price"]},
+                                    {row["volume"]}
+                                )
+                                ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
+                            self.engine.execute(query)
+                            print(f"Index: {index + 1} rows updated")
+                    begin_date = begin_date + timedelta(days = 1)
 
-            print(f"Index: {index + 1} rows updated")
+        while begin_date <= date:
+            print(f"Update new index on date {begin_date}")
+            update_df = df[df['date'] == begin_date.strftime('%Y-%m-%d')]
+            # perform update on row
+            for index, row in update_df.iterrows():
+                query = text(f""" 
+                    INSERT INTO {self.schema}.{self.index_table}
+                    VALUES ( 
+                        '{row["stock_index"].upper()}', 
+                        '{row["date"].strftime('%Y-%m-%d')}',
+                        {row["open_price"]},
+                        {row["highest_price"]},
+                        {row["lowest_price"]},
+                        {row["close_price"]},
+                        {row["volume"]}
+                    )
+                    ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
+                self.engine.execute(query)
+                print(f"Index: {index + 1} rows updated")
+                begin_date = begin_date + timedelta(days = 1)
         return True
 
     def _crawl(self, date, mode = 'eod'):
@@ -155,28 +195,73 @@ class DailyTransaction(object):
             df['date'] = df['date'].apply(str)
             df['date'] = pd.to_datetime(df['date'])
 
-            # perform update on row
-            for index, row in df.iterrows():
-                query = text(f""" 
-                    INSERT INTO {self.schema}.{self.table}
-                    VALUES (
-                        '{stock_exchange}', 
-                        '{row["stock_code"]}', 
-                        '{row["date"].strftime('%Y-%m-%d')}',
-                        {row["open_price"]},
-                        {row["highest_price"]},
-                        {row["lowest_price"]},
-                        {row["close_price"]},
-                        {row["volume"]}
-                    )
-                    ON CONFLICT ON CONSTRAINT transaction_unique_key DO NOTHING;""")
-                try:
-                    self.engine.execute(query)
-                except exc.IntegrityError:
-                    print(f"Foreign key constraint. Stock code {row['stock_code']} removed due to violation")
-                    continue
-                print(f"{stock_exchange}: {index + 1} rows updated")
+            query = f"""SELECT DISTINCT(date) AS date 
+                FROM {self.schema}.{self.table} 
+                WHERE 
+                    date <= DATE '{date}'
+                    AND
+                    stock_exchange = '{stock_exchange}'
+            """
+            exists = pd.read_sql_query(query, self.engine)
+            if len(exists) > 0:
+                exist_dates = exists['date'].sort_values()
+                begin_date = None
+                for e in exist_dates:
+                    if begin_date is None:
+                        begin_date = e
+                    else:
+                        for _ in range(1,(e - begin_date).days):
+                            begin_date = begin_date + timedelta(days = 1)
+                            print(f"Update missing data on date {begin_date}")
+                            update_df = df[(df['date'] == begin_date.strftime('%Y-%m-%d')) & (df['stock_exchange'] == stock_exchange)]
+                            # perform update on row
+                            for index, row in update_df.iterrows():
+                                query = text(f""" 
+                                    INSERT INTO {self.schema}.{self.table}
+                                    VALUES (
+                                        '{stock_exchange}', 
+                                        '{row["stock_code"]}', 
+                                        '{row["date"].strftime('%Y-%m-%d')}',
+                                        {row["open_price"]},
+                                        {row["highest_price"]},
+                                        {row["lowest_price"]},
+                                        {row["close_price"]},
+                                        {row["volume"]}
+                                    )
+                                    ON CONFLICT ON CONSTRAINT transaction_unique_key DO NOTHING;""")
+                                try:
+                                    self.engine.execute(query)
+                                except exc.IntegrityError:
+                                    print(f"Foreign key constraint. Stock code {row['stock_code']} removed due to violation")
+                                    continue
+                                print(f"{stock_exchange}: {index + 1} rows updated")
+                        begin_date = begin_date + timedelta(days = 1)
 
+            while begin_date <= date:
+                print(f"Update new data on date {begin_date}")
+                update_df = df[(df['date'] == begin_date.strftime('%Y-%m-%d')) & (df['stock_exchange'] == stock_exchange)]
+                # perform update on row
+                for index, row in update_df.iterrows():
+                    query = text(f""" 
+                        INSERT INTO {self.schema}.{self.table}
+                        VALUES (
+                            '{stock_exchange}', 
+                            '{row["stock_code"]}', 
+                            '{row["date"].strftime('%Y-%m-%d')}',
+                            {row["open_price"]},
+                            {row["highest_price"]},
+                            {row["lowest_price"]},
+                            {row["close_price"]},
+                            {row["volume"]}
+                        )
+                        ON CONFLICT ON CONSTRAINT transaction_unique_key DO NOTHING;""")
+                    try:
+                        self.engine.execute(query)
+                    except exc.IntegrityError:
+                        print(f"Foreign key constraint. Stock code {row['stock_code']} removed due to violation")
+                        continue
+                    print(f"{stock_exchange}: {index + 1} rows updated")
+                begin_date = begin_date + timedelta(days = 1)
         return True
 
     def work(self):
@@ -184,41 +269,20 @@ class DailyTransaction(object):
             shutil.rmtree(DailyTransaction.ROOT_PATH)
         os.makedirs(DailyTransaction.ROOT_PATH)
 
-        # get maximum date from the table
-        query = f"SELECT MAX(date) FROM {self.schema}.{self.table}"
-        df = pd.read_sql_query(query, self.engine)
-        if df['max'].iloc[0] is None: # first time initializing the table -> no content -> need to crawl data from up to today
-            end_date = datetime.today()
-            found_last_updated_day = False
-            #TODO: This may fall into infinite loops -> There should be a condition to stop this
-            while not found_last_updated_day:
-                found_last_updated_day = self._crawl(end_date, mode = 'upto')
-                if not found_last_updated_day:
-                    end_date = end_date - timedelta(days = 1)
-        else:
-            begin_date = df['max'].iloc[0]
-            end_date = datetime.today().date()
-            while begin_date < end_date:
-                # change to next day and begin crawling data
-                begin_date = begin_date + timedelta(days = 1)
-                self._crawl(begin_date)
+        # get minimum date from the table
+        end_date = datetime.today().date()
+        found_last_updated_day = False
+        while not found_last_updated_day:
+            found_last_updated_day = self._crawl(end_date, mode = 'upto')
+            if not found_last_updated_day:
+                end_date = end_date - timedelta(days = 1)
 
-        query = f"SELECT MAX(date) FROM {self.schema}.{self.index_table}"
-        df = pd.read_sql_query(query, self.engine)
-        if df['max'].iloc[0] is None: # first time initializing the table -> no content -> need to crawl data from up to today
-            end_date = datetime.today()
-            found_last_updated_day = False
-            while not found_last_updated_day:
-                found_last_updated_day = self._crawl_index(end_date, mode = 'upto')
-                if not found_last_updated_day:
-                    end_date = end_date - timedelta(days = 1)
-        else:
-            begin_date = df['max'].iloc[0]
-            end_date = datetime.today().date()
-            while begin_date < end_date:
-                # change to next day and begin crawling data
-                begin_date = begin_date + timedelta(days = 1)
-                self._crawl_index(begin_date)
+        end_date = datetime.today().date()
+        found_last_updated_day = False
+        while not found_last_updated_day:
+            found_last_updated_day = self._crawl_index(end_date, mode = 'upto')
+            if not found_last_updated_day:
+                end_date = end_date - timedelta(days = 1)
 
 
 

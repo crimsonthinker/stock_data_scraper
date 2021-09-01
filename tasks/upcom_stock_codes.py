@@ -20,6 +20,8 @@ class UPCOMStocks(object):
         self._browser_option = webdriver.ChromeOptions()
         if headless:
             self._browser_option.add_argument('headless')
+        self._browser_option.add_argument('no-sandbox')
+        self._browser_option.add_argument('disable-dev-shm-usage')
         # add driver
         self._driver = webdriver.Chrome(
             os.path.join(CHROME_DRIVER_PATH,"chromedriver"),
