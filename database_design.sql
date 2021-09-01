@@ -119,6 +119,7 @@ CREATE TABLE public.stock_index (
     open_price double precision,
     highest_price double precision,
     lowest_price double precision,
+    close_price double precision,
     volume bigint
 );
 
