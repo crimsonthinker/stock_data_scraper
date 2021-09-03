@@ -135,7 +135,7 @@ class DailyTransaction(object):
                     ON CONFLICT ON CONSTRAINT stock_index_unique_key DO NOTHING;""")
                 self.engine.execute(query)
                 print(f"Index: {index + 1} rows updated")
-                begin_date = begin_date + timedelta(days = 1)
+            begin_date = begin_date + timedelta(days = 1)
         return True
 
     def _crawl(self, date, mode = 'eod'):

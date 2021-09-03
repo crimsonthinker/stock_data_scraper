@@ -20,12 +20,11 @@ class UPCOMStocks(object):
         self._browser_option = webdriver.ChromeOptions()
         if headless:
             self._browser_option.add_argument('headless')
-        self._browser_option.add_argument('no-sandbox')
-        self._browser_option.add_argument('disable-dev-shm-usage')
+        self._browser_option.add_argument('--remote-debugging-port=9222')
         # add driver
         self._driver = webdriver.Chrome(
-            os.path.join(CHROME_DRIVER_PATH,"chromedriver"),
-            chrome_options = self._browser_option
+            os.path.join(CHROME_DRIVER_PATH,"chromedriver_v92"),
+            options = self._browser_option
         )
         self.schema = 'public'
         self.table = 'stock_info'
@@ -97,6 +96,9 @@ class UPCOMStocks(object):
 
         # step 2: Get number of pages
         self._get_company_data()
+
+        # step 3: quit browser
+        self._driver.quit()
 
 if __name__ == '__main__':
     hs = UPCOMStocks()
