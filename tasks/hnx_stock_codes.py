@@ -23,7 +23,7 @@ class HNXStocks(object):
         self._browser_option.add_argument('--remote-debugging-port=9222')
         # add driver
         self._driver = webdriver.Chrome(
-            os.path.join(CHROME_DRIVER_PATH,"chromedriver_v92"),
+            os.path.join(CHROME_DRIVER_PATH,"chromedriver"),
             options = self._browser_option
         )
         self.schema = 'public'
