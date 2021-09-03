@@ -115,7 +115,8 @@ class DailyTransaction(object):
                             self.engine.execute(query)
                             print(f"Index: {index + 1} rows updated")
                     begin_date = begin_date + timedelta(days = 1)
-
+        else:
+            begin_date = min(df['date']).date()
         while begin_date <= date:
             print(f"Update new index on date {begin_date}")
             update_df = df[df['date'] == begin_date.strftime('%Y-%m-%d')]
@@ -203,6 +204,7 @@ class DailyTransaction(object):
                     stock_exchange = '{stock_exchange}'
             """
             exists = pd.read_sql_query(query, self.engine)
+            # import pdb;pdb.set_trace()
             if len(exists) > 0:
                 exist_dates = exists['date'].sort_values()
                 begin_date = None
@@ -236,6 +238,8 @@ class DailyTransaction(object):
                                     continue
                                 print(f"{stock_exchange}: {index + 1} rows updated")
                         begin_date = begin_date + timedelta(days = 1)
+            else:
+                begin_date = min(df['date']).date()
 
             while begin_date <= date:
                 print(f"Update new data on date {begin_date}")
