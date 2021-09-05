@@ -17,7 +17,7 @@ def portfolio_annualised_performance(
         cov_matrix (np.ndarray): covariance matrix of stocks
 
     Returns:
-        [type]: [description]
+        float, float: deviation and returns of the portfolio
     """
     returns_portfolio = np.sum(mean_returns * weights) * days
     std_portfolio = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(days)
