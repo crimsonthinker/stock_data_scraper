@@ -9,7 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import pandas as pd
 
-from utils.constants import *
+from utils.constants import CHROME_DRIVER_PATH
 
 class HNXStocks(object):
     HNX_STOCK_URL = 'https://hnx.vn/cophieu-etfs/chung-khoan-ny.html'

@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 import urllib.request
 import os
 import zipfile
@@ -6,7 +6,7 @@ import pandas as pd
 import shutil
 from sqlalchemy import text
 from sqlalchemy import exc
-from utils.utilities import *
+from utils.utilities import get_engine
 from urllib.error import HTTPError, URLError
 
 
