@@ -2,3 +2,5 @@
 **/__pycache__/
 .vscode
 drivers/*
+log.log
+utils/__pycache__
