@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from utils.constants import CANDLE_RANKINGS
 
-def candlestick_patterns(stock_code: str) -> pd.DataFrame:
+def candlestick_patterns(stock_code: str, day_interval = 120) -> pd.DataFrame:
     """Input is a Pandas Dataframe that has
     open_price
     close_price
@@ -21,7 +21,7 @@ def candlestick_patterns(stock_code: str) -> pd.DataFrame:
     engine = get_engine()
     # we only need 2 to 3 days to analyze candlestick
     end_date = datetime.today().date()
-    start_date = end_date - relativedelta(days = 10)
+    start_date = end_date - relativedelta(days = day_interval)
 
     query = f"""
         SELECT
@@ -59,6 +59,8 @@ def candlestick_patterns(stock_code: str) -> pd.DataFrame:
     for candle in candle_names:
         stock_data[candle] = getattr(talib, candle)(stock_data['open'], stock_data['high'], stock_data['low'], stock_data['close'])
 
+    worst_rank = max(list(CANDLE_RANKINGS.values()))
+
     def make_decision(row):
         proposed_candles = {}
         for candle in candle_names:
@@ -66,17 +68,19 @@ def candlestick_patterns(stock_code: str) -> pd.DataFrame:
                 proposed_candles[candle] = row[candle]
         if len(proposed_candles) == 0:
             row['action'] = 'wait'
+            row['score'] = 0
         else:
             score = 0
             for candle in proposed_candles:
                 action = f'{candle}_Bull' if proposed_candles[candle] > 0 else f'{candle}_Bear'
-                score += proposed_candles[candle] * CANDLE_RANKINGS[action]
+                score += proposed_candles[candle] * (worst_rank - CANDLE_RANKINGS[action])
             if score > 0:
                 row['action'] = 'bull'
             elif score == 0:
                 row['action'] = 'wait'
             else:
                 row['action'] = 'bear'
+            row['score'] = score
         return row
     stock_data = stock_data.apply(make_decision, axis = 1)
 
@@ -88,7 +92,7 @@ def candlestick_patterns(stock_code: str) -> pd.DataFrame:
         'low' : 'lowest_price'
     })
 
-    return stock_data.iloc[-1]
+    return stock_data
 
 
 

@@ -80,24 +80,24 @@ def moving_average_analysis(stock_code : str, investment_preference : dict) -> p
     recent_state = df.iloc[-1]
 
     # personal algorithm: using weighted average to calculate final action
-    numerator = 0
-    denominator = 0
-    for key in investment_preference:
-        short_ma, long_ma = key
-        denominator += investment_preference[key]
-        numerator += (1 if recent_state[f'state_{short_ma}_{long_ma}'] == 'bear' else \
-            0.5 if recent_state[f'state_{short_ma}_{long_ma}'] == 'wait' else 0.0) * investment_preference[key]
+    # numerator = 0
+    # denominator = 0
+    # for key in investment_preference:
+    #     short_ma, long_ma = key
+    #     denominator += investment_preference[key]
+    #     numerator += (1 if recent_state[f'state_{short_ma}_{long_ma}'] == 'bear' else \
+    #         0.5 if recent_state[f'state_{short_ma}_{long_ma}'] == 'wait' else 0.0) * investment_preference[key]
 
-    final_action = numerator / denominator
-    action_score = final_action
-    if final_action >= 0.4 and final_action <= 0.6: # safe spot for waiting
-        final_action = 'wait'
-    elif final_action > 0.6:
-        final_action = 'bear'
-    else:
-        final_action = 'bull'
+    # final_action = numerator / denominator
+    # action_score = final_action
+    # if final_action >= 0.45 and final_action <= 0.55: # safe spot for waiting
+    #     final_action = 'wait'
+    # elif final_action > 0.6:
+    #     final_action = 'bear'
+    # else:
+    #     final_action = 'bull'
 
-    recent_state.loc['final_action'] = final_action
-    recent_state.loc['action_score'] = action_score
+    # recent_state.loc['final_action'] = final_action
+    # recent_state.loc['action_score'] = action_score
 
-    return recent_state
+    return df
