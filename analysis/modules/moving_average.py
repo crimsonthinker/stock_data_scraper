@@ -5,18 +5,18 @@ from utils.utilities import get_engine
 from itertools import combinations
 import math
 
-def moving_average_analysis(stock_code : str, investment_preference : dict) -> pd.DataFrame:
+def moving_average_analysis(stock_code : str, investment_preference : list) -> pd.DataFrame:
     """Analyze stock data using Moving Average Analysis
 
     Args:
         stock_code (str): stock code 
-        investment_prefrence (dict) : your way of investing. Example: {
-            (10, 20) : 0.4,
-            (20, 50) : 0.2,
-            (50, 100) : 0.2,
-            (100, 200) : 0.1,
-            (200, 500) : 0.1
-        }
+        investment_preference (list) : pairs of windows. Example: [
+            (10, 20)
+            (20, 50)
+            (50, 100)
+            (100, 200)
+            (200, 500)
+        ]
         It can be any pair of moving average window.
         The first element of the pair must be shorter than the second one.
 
@@ -54,50 +54,39 @@ def moving_average_analysis(stock_code : str, investment_preference : dict) -> p
     moving_average_windows = [item for t in investment_preference for item in t]
     # Get the moving average with different windows
     for window in moving_average_windows:
-        df[f'ma_{window}'] = df['close_price'].rolling(window).mean()
+        df[f'sma_{window}'] = df['close_price'].rolling(window).mean()
+        df[f'ema_{window}'] = df['close_price'].ewm(span = window).mean()
 
     for short_ma, long_ma in investment_preference:
         # initialize MA pairs
-        df[f'state_{short_ma}_{long_ma}'] = 'wait'
+        df[f'state_sma_{short_ma}_{long_ma}'] = 'wait'
+        df[f'state_ema_{short_ma}_{long_ma}'] = 'wait'
         
         for i in df.index[1:]: # start from the second row
             # no rows should be NAN
-            if math.isnan(df.loc[i, f'ma_{short_ma}']) or \
-                math.isnan(df.loc[i, f'ma_{long_ma}']) or \
-                    math.isnan(df.loc[i - 1, f'ma_{short_ma}']) or \
-                        math.isnan(df.loc[i - 1, f'ma_{long_ma}']):
-                        continue 
+            if not(math.isnan(df.loc[i, f'sma_{short_ma}']) or \
+                math.isnan(df.loc[i, f'sma_{long_ma}']) or \
+                    math.isnan(df.loc[i - 1, f'sma_{short_ma}']) or \
+                        math.isnan(df.loc[i - 1, f'sma_{long_ma}'])):
+                        # short ma from below to above -> golden cross
+                        if df.loc[i, f'sma_{short_ma}'] > df.loc[i, f'sma_{long_ma}'] and df.loc[i - 1, f'sma_{short_ma}'] < df.loc[i - 1, f'sma_{long_ma}']:
+                            df.loc[i, f'state_sma_{short_ma}_{long_ma}'] = 'bear'
 
+                        # short ma from above to below -> death cross
+                        if df.loc[i, f'sma_{short_ma}'] < df.loc[i, f'sma_{long_ma}'] and df.loc[i - 1, f'sma_{short_ma}'] > df.loc[i - 1, f'sma_{long_ma}']:
+                            df.loc[i, f'state_sma_{short_ma}_{long_ma}'] = 'bull'
 
-            # short ma from below to above -> golden cross
-            if df.loc[i, f'ma_{short_ma}'] > df.loc[i, f'ma_{long_ma}'] and df.loc[i - 1, f'ma_{short_ma}'] < df.loc[i - 1, f'ma_{long_ma}']:
-                df.loc[i, f'state_{short_ma}_{long_ma}'] = 'bear'
+            # no rows should be NAN
+            if not(math.isnan(df.loc[i, f'ema_{short_ma}']) or \
+                math.isnan(df.loc[i, f'ema_{long_ma}']) or \
+                    math.isnan(df.loc[i - 1, f'ema_{short_ma}']) or \
+                        math.isnan(df.loc[i - 1, f'ema_{long_ma}'])):
+                        # short ma from below to above -> golden cross
+                        if df.loc[i, f'ema_{short_ma}'] > df.loc[i, f'ema_{long_ma}'] and df.loc[i - 1, f'ema_{short_ma}'] < df.loc[i - 1, f'ema_{long_ma}']:
+                            df.loc[i, f'state_ema_{short_ma}_{long_ma}'] = 'bear'
 
-            # short ma from above to below -> death cross
-            if df.loc[i, f'ma_{short_ma}'] < df.loc[i, f'ma_{long_ma}'] and df.loc[i - 1, f'ma_{short_ma}'] > df.loc[i - 1, f'ma_{long_ma}']:
-                df.loc[i, f'state_{short_ma}_{long_ma}'] = 'bull'
-
-    recent_state = df.iloc[-1]
-
-    # personal algorithm: using weighted average to calculate final action
-    # numerator = 0
-    # denominator = 0
-    # for key in investment_preference:
-    #     short_ma, long_ma = key
-    #     denominator += investment_preference[key]
-    #     numerator += (1 if recent_state[f'state_{short_ma}_{long_ma}'] == 'bear' else \
-    #         0.5 if recent_state[f'state_{short_ma}_{long_ma}'] == 'wait' else 0.0) * investment_preference[key]
-
-    # final_action = numerator / denominator
-    # action_score = final_action
-    # if final_action >= 0.45 and final_action <= 0.55: # safe spot for waiting
-    #     final_action = 'wait'
-    # elif final_action > 0.6:
-    #     final_action = 'bear'
-    # else:
-    #     final_action = 'bull'
-
-    # recent_state.loc['final_action'] = final_action
-    # recent_state.loc['action_score'] = action_score
+                        # short ma from above to below -> death cross
+                        if df.loc[i, f'ema_{short_ma}'] < df.loc[i, f'ema_{long_ma}'] and df.loc[i - 1, f'ema_{short_ma}'] > df.loc[i - 1, f'ema_{long_ma}']:
+                            df.loc[i, f'state_ema_{short_ma}_{long_ma}'] = 'bull'
 
     return df
