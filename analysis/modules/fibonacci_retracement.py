@@ -8,12 +8,12 @@ import matplotlib.dates as mdates
 
 from utils.utilities import get_engine
 
-def fibonacci_retracement_strategy(stock_code : str, day_interval : int = 240):
+def fibonacci_retracement_strategy(stock_code : str, day_interval : int = 252):
     """A Fibonacci retracement approach
 
     Args:
         stock_code (str): stock code
-        day_interval (int, optional): interval of transaction day. Defaults to 240.
+        day_interval (int, optional): interval of transaction day. Defaults to 252.
     """
 
     engine = get_engine()

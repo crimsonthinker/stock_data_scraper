@@ -4,3 +4,6 @@
 drivers/*
 log.log
 utils/__pycache__
+
+update.sh
+drivers/*

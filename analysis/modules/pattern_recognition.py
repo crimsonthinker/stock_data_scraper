@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from utils.constants import CANDLE_RANKINGS
 
-def candlestick_patterns(stock_code: str, day_interval = 120) -> pd.DataFrame:
+def candlestick_patterns(stock_code: str, day_interval : int = 120, lookback_window : int = 7) -> pd.DataFrame:
     """Input is a Pandas Dataframe that has
     open_price
     close_price
@@ -16,6 +16,8 @@ def candlestick_patterns(stock_code: str, day_interval = 120) -> pd.DataFrame:
 
     Args:
         stock_code (pd.DataFrame): stock code
+        day_interval (int): day interval
+        lookback_window (int) : lookback window of the result
     """
 
     engine = get_engine()
@@ -92,7 +94,7 @@ def candlestick_patterns(stock_code: str, day_interval = 120) -> pd.DataFrame:
         'low' : 'lowest_price'
     })
 
-    return stock_data
+    return stock_data.iloc[-lookback_window:]
 
 
 

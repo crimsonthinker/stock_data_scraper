@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 12.7 (Ubuntu 12.7-0ubuntu0.20.04.1)
--- Dumped by pg_dump version 12.7 (Ubuntu 12.7-0ubuntu0.20.04.1)
+-- Dumped from database version 14.0 (Debian 14.0-1.pgdg110+1)
+-- Dumped by pg_dump version 14.0 (Debian 14.0-1.pgdg110+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,7 +17,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: vietnam_stock_exchange; Type: TYPE; Schema: public; Owner: khoa
+-- Name: vietnam_stock_exchange; Type: TYPE; Schema: public; Owner: thepublic
 --
 
 CREATE TYPE public.vietnam_stock_exchange AS ENUM (
@@ -27,17 +27,17 @@ CREATE TYPE public.vietnam_stock_exchange AS ENUM (
 );
 
 
-ALTER TYPE public.vietnam_stock_exchange OWNER TO khoa;
+ALTER TYPE public.vietnam_stock_exchange OWNER TO thepublic;
 
 --
--- Name: TYPE vietnam_stock_exchange; Type: COMMENT; Schema: public; Owner: khoa
+-- Name: TYPE vietnam_stock_exchange; Type: COMMENT; Schema: public; Owner: thepublic
 --
 
 COMMENT ON TYPE public.vietnam_stock_exchange IS 'enumeration for stock exchanges';
 
 
 --
--- Name: vietnam_stock_index; Type: TYPE; Schema: public; Owner: khoa
+-- Name: vietnam_stock_index; Type: TYPE; Schema: public; Owner: thepublic
 --
 
 CREATE TYPE public.vietnam_stock_index AS ENUM (
@@ -46,12 +46,12 @@ CREATE TYPE public.vietnam_stock_index AS ENUM (
 );
 
 
-ALTER TYPE public.vietnam_stock_index OWNER TO khoa;
+ALTER TYPE public.vietnam_stock_index OWNER TO thepublic;
 
 SET default_tablespace = '';
 
 --
--- Name: transaction; Type: TABLE; Schema: public; Owner: khoa
+-- Name: transaction; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.transaction (
@@ -67,12 +67,12 @@ CREATE TABLE public.transaction (
 PARTITION BY LIST (stock_exchange);
 
 
-ALTER TABLE public.transaction OWNER TO khoa;
+ALTER TABLE public.transaction OWNER TO thepublic;
 
 SET default_table_access_method = heap;
 
 --
--- Name: hnx_transaction; Type: TABLE; Schema: public; Owner: khoa
+-- Name: hnx_transaction; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.hnx_transaction (
@@ -85,13 +85,12 @@ CREATE TABLE public.hnx_transaction (
     close_price double precision,
     volume bigint
 );
-ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hnx_transaction FOR VALUES IN ('HNX');
 
 
-ALTER TABLE public.hnx_transaction OWNER TO khoa;
+ALTER TABLE public.hnx_transaction OWNER TO thepublic;
 
 --
--- Name: hsx_transaction; Type: TABLE; Schema: public; Owner: khoa
+-- Name: hsx_transaction; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.hsx_transaction (
@@ -104,13 +103,12 @@ CREATE TABLE public.hsx_transaction (
     close_price double precision,
     volume bigint
 );
-ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hsx_transaction FOR VALUES IN ('HSX');
 
 
-ALTER TABLE public.hsx_transaction OWNER TO khoa;
+ALTER TABLE public.hsx_transaction OWNER TO thepublic;
 
 --
--- Name: stock_index; Type: TABLE; Schema: public; Owner: khoa
+-- Name: stock_index; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.stock_index (
@@ -124,10 +122,10 @@ CREATE TABLE public.stock_index (
 );
 
 
-ALTER TABLE public.stock_index OWNER TO khoa;
+ALTER TABLE public.stock_index OWNER TO thepublic;
 
 --
--- Name: stock_info; Type: TABLE; Schema: public; Owner: khoa
+-- Name: stock_info; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.stock_info (
@@ -140,10 +138,10 @@ CREATE TABLE public.stock_info (
 );
 
 
-ALTER TABLE public.stock_info OWNER TO khoa;
+ALTER TABLE public.stock_info OWNER TO thepublic;
 
 --
--- Name: upcom_transaction; Type: TABLE; Schema: public; Owner: khoa
+-- Name: upcom_transaction; Type: TABLE; Schema: public; Owner: thepublic
 --
 
 CREATE TABLE public.upcom_transaction (
@@ -156,13 +154,33 @@ CREATE TABLE public.upcom_transaction (
     close_price double precision,
     volume bigint
 );
+
+
+ALTER TABLE public.upcom_transaction OWNER TO thepublic;
+
+--
+-- Name: hnx_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
+--
+
+ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hnx_transaction FOR VALUES IN ('HNX');
+
+
+--
+-- Name: hsx_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
+--
+
+ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hsx_transaction FOR VALUES IN ('HSX');
+
+
+--
+-- Name: upcom_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
+--
+
 ALTER TABLE ONLY public.transaction ATTACH PARTITION public.upcom_transaction FOR VALUES IN ('UPCOM');
 
 
-ALTER TABLE public.upcom_transaction OWNER TO khoa;
-
 --
--- Name: transaction transaction_unique_key; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: transaction transaction_unique_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.transaction
@@ -170,7 +188,7 @@ ALTER TABLE ONLY public.transaction
 
 
 --
--- Name: hnx_transaction hnx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: hnx_transaction hnx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.hnx_transaction
@@ -178,7 +196,7 @@ ALTER TABLE ONLY public.hnx_transaction
 
 
 --
--- Name: hsx_transaction hsx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: hsx_transaction hsx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.hsx_transaction
@@ -186,7 +204,7 @@ ALTER TABLE ONLY public.hsx_transaction
 
 
 --
--- Name: stock_index stock_index_unique_key; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: stock_index stock_index_unique_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.stock_index
@@ -194,7 +212,7 @@ ALTER TABLE ONLY public.stock_index
 
 
 --
--- Name: stock_info stock_info_pkey; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: stock_info stock_info_pkey; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.stock_info
@@ -202,7 +220,7 @@ ALTER TABLE ONLY public.stock_info
 
 
 --
--- Name: upcom_transaction upcom_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: khoa
+-- Name: upcom_transaction upcom_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE ONLY public.upcom_transaction
@@ -210,28 +228,28 @@ ALTER TABLE ONLY public.upcom_transaction
 
 
 --
--- Name: hnx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: khoa
+-- Name: hnx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
 --
 
 ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.hnx_transaction_stock_exchange_stock_code_date_key;
 
 
 --
--- Name: hsx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: khoa
+-- Name: hsx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
 --
 
 ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.hsx_transaction_stock_exchange_stock_code_date_key;
 
 
 --
--- Name: upcom_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: khoa
+-- Name: upcom_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
 --
 
 ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.upcom_transaction_stock_exchange_stock_code_date_key;
 
 
 --
--- Name: transaction stock_code_f_key; Type: FK CONSTRAINT; Schema: public; Owner: khoa
+-- Name: transaction stock_code_f_key; Type: FK CONSTRAINT; Schema: public; Owner: thepublic
 --
 
 ALTER TABLE public.transaction
@@ -239,7 +257,7 @@ ALTER TABLE public.transaction
 
 
 --
--- Name: CONSTRAINT stock_code_f_key ON transaction; Type: COMMENT; Schema: public; Owner: khoa
+-- Name: CONSTRAINT stock_code_f_key ON transaction; Type: COMMENT; Schema: public; Owner: thepublic
 --
 
 COMMENT ON CONSTRAINT stock_code_f_key ON public.transaction IS 'foreign key for stock code';
@@ -248,4 +266,3 @@ COMMENT ON CONSTRAINT stock_code_f_key ON public.transaction IS 'foreign key for
 --
 -- PostgreSQL database dump complete
 --
-

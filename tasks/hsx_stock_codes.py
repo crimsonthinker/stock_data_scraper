@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 import pandas as pd
+import traceback
 
 from utils.constants import CHROME_DRIVER_PATH
 
@@ -63,14 +64,17 @@ class HNXStocks(object):
                 #extract cells to get company's information
                 cells = row.find_all('td', {'role' : 'gridcell'})
                 company = {name : cell.getText() for name, cell in zip(HNXStocks.HNX_STOCK_LIST_HEADER, cells)}
-                df.loc[-1] = [
-                    company['listing_business'],
-                    int(float(company['fee_float'].replace('.','').replace(',','.'))),
-                    datetime.strptime(company['listing_date'], '%d/%m/%Y'),
-                    company['stock_code'],
-                    int(float(company['listing_volume'].replace('.','').replace(',','.'))),
-                    'HSX'
-                ]
+                try:
+                    df.loc[-1] = [
+                        company['listing_business'],
+                        int(float(company['fee_float'].replace('.','').replace(',','.'))),
+                        datetime.strptime(company['listing_date'], '%d/%m/%Y'),
+                        company['stock_code'],
+                        int(float(company['listing_volume'].replace('.','').replace(',','.'))),
+                        'HSX'
+                    ]
+                except:
+                    print(traceback.format_exc())
                 print(f"Updated stock {company['stock_code']}")
                 df.index = df.index + 1  # shifting index
 

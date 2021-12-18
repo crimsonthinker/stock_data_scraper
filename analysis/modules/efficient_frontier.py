@@ -9,21 +9,29 @@ from datetime import datetime, timedelta
 
 from utils.utilities import get_engine
 
-def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06, day_interval : int = 260):
+def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06):
     """Calculate portfolio with selected efficient frontier
 
     Args:
         stock_codes (List[str]): list of stocks
         risk_free_rate (float, optional): risk free rate (from the bank it is 6%). Defaults to 0.06.
-        day_interval (int, optional): interval of data. Defaults to 260.
     """
-    # Query stock data 
     engine = get_engine()
 
-    # Get 1 year data
+    # Get first transaction date of the stocks
+    query = f"""
+        SELECT 
+            first_transaction_date
+        FROM public.stock_info
+        WHERE
+            stock_code IN {tuple(stock_codes)}
+    """
+    # Get the most current transaction date
+    df = pd.read_sql_query(query, engine)['first_transaction_date']
+    start_date = df.max()
     end_date = datetime.today().date()
-    start_date = end_date - timedelta(days = day_interval)
 
+    # Query stock data 
     stock_query = f"""
         SELECT
             stock_code,
@@ -36,6 +44,7 @@ def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06, d
             date >= DATE '{start_date}'
             AND
             date <= DATE '{end_date}'
+        ORDER BY date
     """
     print("Query data")
     df = pd.read_sql_query(stock_query, engine)
@@ -54,7 +63,7 @@ def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06, d
             close_data = stock_data
         else:
             close_data = close_data.merge(stock_data, how = 'outer', left_index = True, right_index = True)
-    close_data = close_data.fillna(0.0)
+    close_data = close_data.dropna()
 
     # Begin calculation
     print("Begin calculation")
@@ -74,15 +83,13 @@ def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06, d
         )
 
     # plot the efficient frontier first
-    fig, ax = plt.subplots(figsize=(10, 7))
+    _, ax = plt.subplots(figsize=(10, 7))
     ef_plotting.plot_efficient_frontier(ef, ax = ax, show_assets = True)
 
     # Find the tangency portflio
 
     # Find the tangency portfolio
     max_sharpe_weights = ef.max_sharpe()
-    ret_tangent, std_tangent, _ = ef.portfolio_performance(risk_free_rate = risk_free_rate)
-    ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
 
     # Generate random portfolios
     n_samples = 10000
@@ -91,6 +98,9 @@ def ef_random_portfolio(stock_codes : List[str],risk_free_rate : float = 0.06, d
     stds = np.sqrt(np.diag(w @ cov_matrix @ w.T)) # convential matrix operator
     sharpes = rets / stds
     ax.scatter(stds, rets, marker=".", c=sharpes, cmap="viridis_r")
+
+    ret_tangent, std_tangent, _ = ef.portfolio_performance(risk_free_rate = risk_free_rate)
+    ax.scatter(std_tangent, ret_tangent, marker="*", s=100, c="r", label="Max Sharpe")
 
     # Output
     ax.set_title("Efficient Frontier with random portfolios")

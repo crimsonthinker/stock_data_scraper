@@ -11,12 +11,12 @@ from urllib.error import HTTPError, URLError
 
 
 class DailyTransaction(object):
-    EOD_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.{}.zip'
-    UP_TO_TRANSACTION_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.SolieuGD.Upto{}.zip'
+    EOD_TRANSACTION_FORMAT_URL = 'https://cafef1.mediacdn.vn/data/ami_data/{}/CafeF.SolieuGD.{}.zip'
+    UP_TO_TRANSACTION_FORMAT_URL = 'https://cafef1.mediacdn.vn/data/ami_data/{}/CafeF.SolieuGD.Upto{}.zip'
     EOD_FILE_FORMAT = 'CafeF.{}.{}.{}.{}.csv'
     UPTO_FILE_FORMAT = 'CafeF.{}.Upto{}.{}.{}.csv'
-    EOD_INDEX_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.Index.{}.zip'
-    UPTO_INDEX_FORMAT_URL = 'https://images1.cafef.vn/data/{}/CafeF.Index.Upto{}.zip'
+    EOD_INDEX_FORMAT_URL = 'https://cafef1.mediacdn.vn/data/ami_data/{}/CafeF.Index.{}.zip'
+    UPTO_INDEX_FORMAT_URL = 'https://cafef1.mediacdn.vn/data/ami_data/{}/CafeF.Index.Upto{}.zip'
     EOD_INDEX_FILE_FORMAT_URL = 'CafeF.INDEX.{}.{}.{}.csv'
     UPTO_INDEX_FILE_FORMAT_URL = 'CafeF.INDEX.Upto{}.{}.{}.csv'
     ROOT_PATH = '.cache'
