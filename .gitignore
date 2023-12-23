@@ -7,3 +7,5 @@ utils/__pycache__
 
 update.sh
 drivers/*
+
+conf/keys.yml
