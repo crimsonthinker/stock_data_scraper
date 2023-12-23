@@ -1,10 +1,13 @@
 # A scraper for Vietnamese stock data 
 
 ## Introduction
-This repository provides a scraper framework to efficiently obtain Vietnamese stock data. It includes a scraper module that is performed daily,
+This repository provides a scraper framework to efficiently obtain stock data. It includes a scraper module that is performed daily,
 a database design (stored in sql file) to store data, and an analysis module to query and extract the stock data for specific needs.
 
 ## Installation
+
+### For Vietnamese stock
+
 The project runs using Python 3.9.5 and PostGreSQL version 14.0. To install, refer to the following steps:
 
 1. Download chromedrivers for scraper and put executable file to **drivers** folder. Link:
@@ -14,7 +17,7 @@ https://chromedriver.storage.googleapis.com/index.html?path=92.0.4515.107/
 
 Rename extracted file to *chromedrivers*.
 
-2. Create postgres database from db_design.sql. 
+2. Create postgres database from db_design. 
 
 The default configuration for the database connection is stored in *conf/db_config.yml*.
 If you want to use your own configuration, please modify the above file as well as transferring the owner of the tables (displayed in *db_design.sql*)
@@ -48,7 +51,7 @@ python3 -m tasks.daily_transaction
 ```
 It is recommended that all the first three commands be done before running the last one.
 
-Note that these url links to scrape data are very inconsistent, so updated versions of this repo will be provided when modification is needed.
+Note that these url links to scrape data are rather inconsistent. Updated versions of this repo will be provided when modification is needed.
 
 ## Usage
 

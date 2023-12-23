@@ -16,6 +16,8 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+-- TODO: Fix this shitttt
+
 --
 -- Name: vietnam_stock_exchange; Type: TYPE; Schema: public; Owner: thepublic
 --

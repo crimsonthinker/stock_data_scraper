@@ -1,4 +1,5 @@
 import os
+
 ROOT_DIR = os.path.abspath(os.curdir)
 CHROME_DRIVER_PATH = os.path.join(ROOT_DIR, 'drivers')
 
@@ -118,3 +119,5 @@ CANDLE_RANKINGS = {
     "CDLDOJI_Bull": 104,
     "CDLDOJI_Bear": 104
 }
+
+EODHDAPIKEY = '65876bd8ec0ad0.80102774'

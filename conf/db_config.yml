@@ -1,6 +1,6 @@
 postgres:
-  username: thepublic
-  password: thepublic
+  username: khoa
+  password: khoa
   host: localhost
   port : 5432
   db: investment
