@@ -11,6 +11,12 @@ SET row_security = off;
 
 \set username 'khoa';
 
+CREATE TYPE public.australia_stock_exchange AS ENUM (
+    'ASX',
+    'NSX',
+    'APX'
+);
+
 ALTER TYPE public.australia_stock_exchange OWNER TO :username;
 
 COMMENT ON TYPE public.australia_stock_exchange IS 'enumeration for stock exchanges';
