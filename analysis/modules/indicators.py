@@ -1,11 +1,21 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import talib
+from typing import List
+from functools import reduce
 
 from utils.utilities import get_engine
 
-def momentum_indicators(stock_code : str, day_interval : int = 252, lookback_window : int = 7) -> pd.DataFrame:
-    """calculate indicators relating to momentum
+def momentum_indicators(
+        stock_codes : List[str], 
+        country = 'AU',
+        days : int = 90, 
+        period = 14,
+        rsi_range = [30,70],
+        adx_threshold = 25,
+        lookback_window : int = 7
+    ) -> pd.DataFrame:
+    """calculate df relating to momentum
     Including:
     RSI
 
@@ -14,53 +24,68 @@ def momentum_indicators(stock_code : str, day_interval : int = 252, lookback_win
         day_interval (int) : period to get RSI. Must be larger than 1.
         lookback_window (int) : period of day to return DataFrame
     """
-    engine = get_engine()
+    engine = get_engine(country = country)
 
     # Get 1 year data
     end_date = datetime.today().date()
-    start_date = end_date - timedelta(days = day_interval)
+    start_date = end_date - timedelta(days = days)
 
-    stock_query = f"""
-        SELECT
-            date,
-            highest_price,
-            lowest_price,
-            close_price
-        FROM public.transaction
-        WHERE
-            stock_code = '{stock_code}'
-            AND
-            date >= DATE '{start_date}'
-            AND
-            date <= DATE '{end_date}'
-        ORDER BY date
-    """
-    print("Query data")
-    df = pd.read_sql_query(stock_query, engine)
+    dfs = []
+    for stock_code in stock_codes:
+        stock_query = f"""
+            SELECT
+                date,
+                high,
+                low,
+                close
+            FROM transaction
+            WHERE
+                stock_code = '{stock_code}'
+                AND
+                date >= DATE '{start_date}'
+                AND
+                date <= DATE '{end_date}'
+            ORDER BY date
+        """
+        print(f"Query {stock_code}")
+        df = pd.read_sql_query(stock_query, engine)
 
-    # initializing dataframe
-    indicators = pd.DataFrame(index = df['date'])
+        # Remove nan value
+        df.index = df['date']
+        df = df.drop('date', axis = 1)
 
-    # Relative strength index
-    indicators['RSI'] = talib.RSI(df['close_price']).to_numpy()
-    indicators['RSI_trend'] = indicators['RSI'].apply(lambda rsi_value: 'bearish_trend' if rsi_value > 70 else ('bullish_trend' if rsi_value < 30 else 'wait'))
+        df = df.dropna() # IMPORTANT??
 
-    # Average Directional Index
-    indicators['ADX'] = talib.ADX(df['highest_price'], df['lowest_price'], df['close_price'], timeperiod = 14).to_numpy()
-    indicators['MINUS_DI'] = talib.MINUS_DI(df['highest_price'], df['lowest_price'], df['close_price'], timeperiod = 14).to_numpy()
-    indicators['PLUS_DI'] = talib.PLUS_DI(df['highest_price'], df['lowest_price'], df['close_price'], timeperiod = 14).to_numpy()
-    indicators['ADX_trend'] = 'wait'
-    for i in range(1,len(indicators)):
-        if indicators.iloc[i - 1]['ADX'] < 25 and indicators.iloc[i]['ADX'] > 25 and indicators.iloc[i]['PLUS_DI'] > indicators.iloc[i]['MINUS_DI']:
-            indicators['ADX_trend'].iloc[i] = 'bullish_trend'
-        elif indicators.iloc[i - 1]['ADX'] < 25 and indicators.iloc[i]['ADX'] > 25 and indicators.iloc[i]['PLUS_DI'] < indicators.iloc[i]['MINUS_DI']:
-            indicators['ADX_trend'].iloc[i] = 'bearish_trend'
+        # Relative strength index
+        df['rsi'] = talib.RSI(df['close'], timeperiod = period).to_numpy()
+        df['rsi_trend'] = df['rsi'].apply(lambda rsi_value: 'bear' if rsi_value > rsi_range[1] else ('bull' if rsi_value < rsi_range[0] else 'wait'))
 
+        # Average Directional Index
+        # FIXME: Parameters for hard-coded values
+        df['adx'] = talib.ADX(df['high'], df['low'], df['close'], timeperiod = period).to_numpy()
+        df['minus_di'] = talib.MINUS_DI(df['high'], df['low'], df['close'], timeperiod = period).to_numpy()
+        df['plus_di'] = talib.PLUS_DI(df['high'], df['low'], df['close'], timeperiod = period).to_numpy()
+        df['adx_trend'] = 'wait'
+        for i in range(1,len(df)):
+            if df.iloc[i - 1]['adx'] < adx_threshold and df.iloc[i]['adx'] > adx_threshold and df.iloc[i]['plus_di'] > df.iloc[i]['minus_di']:
+                df['adx_trend'].iloc[i] = 'bull'
+            elif df.iloc[i - 1]['adx'] < adx_threshold and df.iloc[i]['adx'] > adx_threshold and df.iloc[i]['plus_di'] < df.iloc[i]['minus_di']:
+                df['adx_trend'].iloc[i] = 'bear'
+
+        df = df[['close','rsi','rsi_trend','adx','adx_trend']]
+
+        # Set lookback windows
+        df = df.iloc[-lookback_window:]
+
+        # Change column to multi-index
+        df.columns = pd.MultiIndex.from_tuples([(stock_code,col) for col in df.columns])
+
+        dfs.append(df.reset_index())
     
-    return indicators.iloc[:-7]
+    return reduce(lambda l,r: pd.merge(l,r, on='date', how='outer'), dfs).sort_values(by='date').reset_index(drop = True)
 
-def volatility_indicators(stock_code : str):
+def volatility_df(stock_code : str):
     pass
     
 if __name__ == '__main__':
-    momentum_indicators('ACB')
+    momentum_indicators('SYI')

@@ -1,2 +1,6 @@
 eodhd:
   api_key: 65876bd8ec0ad0.80102774
+devapi:
+  api_key: 264|SHzj2myPPIhSq6QgPxwoFEKkg20v2Ab3qR1GRvXQ
+alphavantage:
+  api_key: APDYKF82HBS8UAPU

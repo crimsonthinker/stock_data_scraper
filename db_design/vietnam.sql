@@ -1,9 +1,5 @@
---
--- PostgreSQL database dump
---
-
--- Dumped from database version 14.0 (Debian 14.0-1.pgdg110+1)
--- Dumped by pg_dump version 14.0 (Debian 14.0-1.pgdg110+1)
+\c personal_stock; 
+CREATE SCHEMA vietnam;
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16,255 +12,122 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- TODO: Fix this shitttt
+\set username 'khoa';
 
---
--- Name: vietnam_stock_exchange; Type: TYPE; Schema: public; Owner: thepublic
---
-
-CREATE TYPE public.vietnam_stock_exchange AS ENUM (
+CREATE TYPE personal_stock.vietnam.stock_exchange AS ENUM (
     'HSX',
     'HNX',
     'UPCOM'
 );
 
-
-ALTER TYPE public.vietnam_stock_exchange OWNER TO thepublic;
-
---
--- Name: TYPE vietnam_stock_exchange; Type: COMMENT; Schema: public; Owner: thepublic
---
-
-COMMENT ON TYPE public.vietnam_stock_exchange IS 'enumeration for stock exchanges';
-
-
---
--- Name: vietnam_stock_index; Type: TYPE; Schema: public; Owner: thepublic
---
-
-CREATE TYPE public.vietnam_stock_index AS ENUM (
-    'VNINDEX',
-    'HNX-INDEX'
-);
-
-
-ALTER TYPE public.vietnam_stock_index OWNER TO thepublic;
+ALTER TYPE personal_stock.vietnam.stock_exchange OWNER TO :username;
 
 SET default_tablespace = '';
 
---
--- Name: transaction; Type: TABLE; Schema: public; Owner: thepublic
---
 
-CREATE TABLE public.transaction (
-    stock_exchange public.vietnam_stock_exchange NOT NULL,
+-- Default: End of day data
+CREATE TABLE personal_stock.vietnam.transaction (
+    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
     stock_code character varying(20) NOT NULL,
     date date NOT NULL,
-    open_price double precision,
-    highest_price double precision,
-    lowest_price double precision,
-    close_price double precision,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    adjusted_close double precision,
     volume bigint
 )
 PARTITION BY LIST (stock_exchange);
 
+ALTER TABLE personal_stock.vietnam.transaction OWNER TO :username;
 
-ALTER TABLE public.transaction OWNER TO thepublic;
+ALTER TABLE ONLY personal_stock.vietnam.transaction
+    ADD CONSTRAINT transaction_unique_key UNIQUE (stock_exchange, stock_code, date);
 
 SET default_table_access_method = heap;
 
---
--- Name: hnx_transaction; Type: TABLE; Schema: public; Owner: thepublic
---
-
-CREATE TABLE public.hnx_transaction (
-    stock_exchange public.vietnam_stock_exchange NOT NULL,
+CREATE TABLE personal_stock.vietnam.hnx_transaction (
+    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
     stock_code character varying(20) NOT NULL,
     date date NOT NULL,
-    open_price double precision,
-    highest_price double precision,
-    lowest_price double precision,
-    close_price double precision,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    adjusted_close double precision,
     volume bigint
 );
 
 
-ALTER TABLE public.hnx_transaction OWNER TO thepublic;
+ALTER TABLE personal_stock.vietnam.hnx_transaction OWNER TO :username;
 
---
--- Name: hsx_transaction; Type: TABLE; Schema: public; Owner: thepublic
---
-
-CREATE TABLE public.hsx_transaction (
-    stock_exchange public.vietnam_stock_exchange NOT NULL,
-    stock_code character varying(20) NOT NULL,
-    date date NOT NULL,
-    open_price double precision,
-    highest_price double precision,
-    lowest_price double precision,
-    close_price double precision,
-    volume bigint
-);
-
-
-ALTER TABLE public.hsx_transaction OWNER TO thepublic;
-
---
--- Name: stock_index; Type: TABLE; Schema: public; Owner: thepublic
---
-
-CREATE TABLE public.stock_index (
-    stock_index public.vietnam_stock_index NOT NULL,
-    date date NOT NULL,
-    open_price double precision,
-    highest_price double precision,
-    lowest_price double precision,
-    close_price double precision,
-    volume bigint
-);
-
-
-ALTER TABLE public.stock_index OWNER TO thepublic;
-
---
--- Name: stock_info; Type: TABLE; Schema: public; Owner: thepublic
---
-
-CREATE TABLE public.stock_info (
-    company_name character varying,
-    free_float bigint NOT NULL,
-    first_transaction_date date NOT NULL,
-    stock_code character varying NOT NULL,
-    listing_volume bigint NOT NULL,
-    stock_exchange public.vietnam_stock_exchange NOT NULL
-);
-
-
-ALTER TABLE public.stock_info OWNER TO thepublic;
-
---
--- Name: upcom_transaction; Type: TABLE; Schema: public; Owner: thepublic
---
-
-CREATE TABLE public.upcom_transaction (
-    stock_exchange public.vietnam_stock_exchange NOT NULL,
-    stock_code character varying(20) NOT NULL,
-    date date NOT NULL,
-    open_price double precision,
-    highest_price double precision,
-    lowest_price double precision,
-    close_price double precision,
-    volume bigint
-);
-
-
-ALTER TABLE public.upcom_transaction OWNER TO thepublic;
-
---
--- Name: hnx_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hnx_transaction FOR VALUES IN ('HNX');
-
-
---
--- Name: hsx_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.transaction ATTACH PARTITION public.hsx_transaction FOR VALUES IN ('HSX');
-
-
---
--- Name: upcom_transaction; Type: TABLE ATTACH; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.transaction ATTACH PARTITION public.upcom_transaction FOR VALUES IN ('UPCOM');
-
-
---
--- Name: transaction transaction_unique_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.transaction
-    ADD CONSTRAINT transaction_unique_key UNIQUE (stock_exchange, stock_code, date);
-
-
---
--- Name: hnx_transaction hnx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.hnx_transaction
+ALTER TABLE ONLY personal_stock.vietnam.hnx_transaction
     ADD CONSTRAINT hnx_transaction_stock_exchange_stock_code_date_key UNIQUE (stock_exchange, stock_code, date);
 
+ALTER TABLE ONLY personal_stock.vietnam.transaction ATTACH PARTITION personal_stock.vietnam.hnx_transaction FOR VALUES IN ('HNX');
 
---
--- Name: hsx_transaction hsx_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
+ALTER INDEX personal_stock.vietnam.transaction_unique_key ATTACH PARTITION personal_stock.vietnam.hnx_transaction_stock_exchange_stock_code_date_key;
 
-ALTER TABLE ONLY public.hsx_transaction
+CREATE TABLE personal_stock.vietnam.hsx_transaction (
+    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
+    stock_code character varying(20) NOT NULL,
+    date date NOT NULL,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    adjusted_close double precision,
+    volume bigint
+);
+
+
+ALTER TABLE personal_stock.vietnam.hsx_transaction OWNER TO :username;
+
+ALTER TABLE ONLY personal_stock.vietnam.hsx_transaction
     ADD CONSTRAINT hsx_transaction_stock_exchange_stock_code_date_key UNIQUE (stock_exchange, stock_code, date);
 
+ALTER TABLE ONLY personal_stock.vietnam.transaction ATTACH PARTITION personal_stock.vietnam.hsx_transaction FOR VALUES IN ('HSX');
 
---
--- Name: stock_index stock_index_unique_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.stock_index
-    ADD CONSTRAINT stock_index_unique_key UNIQUE (stock_index, date);
+ALTER INDEX personal_stock.vietnam.transaction_unique_key ATTACH PARTITION personal_stock.vietnam.hsx_transaction_stock_exchange_stock_code_date_key;
 
 
---
--- Name: stock_info stock_info_pkey; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
+CREATE TABLE personal_stock.vietnam.upcom_transaction (
+    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
+    stock_code character varying(20) NOT NULL,
+    date date NOT NULL,
+    open double precision,
+    high double precision,
+    low double precision,
+    close double precision,
+    adjusted_close double precision,
+    volume bigint
+);
 
-ALTER TABLE ONLY public.stock_info
-    ADD CONSTRAINT stock_info_pkey PRIMARY KEY (stock_code);
+ALTER TABLE personal_stock.vietnam.upcom_transaction OWNER TO :username;
 
-
---
--- Name: upcom_transaction upcom_transaction_stock_exchange_stock_code_date_key; Type: CONSTRAINT; Schema: public; Owner: thepublic
---
-
-ALTER TABLE ONLY public.upcom_transaction
+ALTER TABLE ONLY personal_stock.vietnam.upcom_transaction
     ADD CONSTRAINT upcom_transaction_stock_exchange_stock_code_date_key UNIQUE (stock_exchange, stock_code, date);
 
+ALTER TABLE ONLY personal_stock.vietnam.transaction ATTACH PARTITION personal_stock.vietnam.upcom_transaction FOR VALUES IN ('UPCOM');
 
---
--- Name: hnx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
---
+ALTER INDEX personal_stock.vietnam.transaction_unique_key ATTACH PARTITION personal_stock.vietnam.upcom_transaction_stock_exchange_stock_code_date_key;
 
-ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.hnx_transaction_stock_exchange_stock_code_date_key;
+CREATE TABLE personal_stock.vietnam.stock_info (
+    company_name character varying,
+    stock_code character varying NOT NULL,
+    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
+    last_updated_date DATE NOT NULL,
+    fundamental json
+);
 
+ALTER TABLE personal_stock.vietnam.stock_info OWNER TO :username;
 
---
--- Name: hsx_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
---
+ALTER TABLE ONLY personal_stock.vietnam.stock_info
+    ADD CONSTRAINT vietnam_stock_info_pkey PRIMARY KEY (stock_code);
 
-ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.hsx_transaction_stock_exchange_stock_code_date_key;
-
-
---
--- Name: upcom_transaction_stock_exchange_stock_code_date_key; Type: INDEX ATTACH; Schema: public; Owner: thepublic
---
-
-ALTER INDEX public.transaction_unique_key ATTACH PARTITION public.upcom_transaction_stock_exchange_stock_code_date_key;
-
-
---
--- Name: transaction stock_code_f_key; Type: FK CONSTRAINT; Schema: public; Owner: thepublic
---
-
-ALTER TABLE public.transaction
-    ADD CONSTRAINT stock_code_f_key FOREIGN KEY (stock_code) REFERENCES public.stock_info(stock_code) DEFERRABLE;
+ALTER TABLE personal_stock.vietnam.transaction
+    ADD CONSTRAINT vietnam_stock_code_f_key FOREIGN KEY (stock_code) REFERENCES personal_stock.vietnam.stock_info(stock_code) DEFERRABLE;
 
 
---
--- Name: CONSTRAINT stock_code_f_key ON transaction; Type: COMMENT; Schema: public; Owner: thepublic
---
-
-COMMENT ON CONSTRAINT stock_code_f_key ON public.transaction IS 'foreign key for stock code';
 
 
---
--- PostgreSQL database dump complete
---

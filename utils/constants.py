@@ -119,3 +119,22 @@ CANDLE_RANKINGS = {
     "CDLDOJI_Bull": 104,
     "CDLDOJI_Bear": 104
 }
+
+MARKET_INDICES = {
+    '%5EGSPC' : 'S&P 500',
+    '%5EAXJO' : 'S&P/ASX 200',
+    '%5EN225' : 'Nikkei 225',
+    '%5EHSI' : 'Hang Seng',
+    '%5EFTSE' : 'FTSE 100',
+    '%5EDJI' : 'Dow Jones',
+    '%5EIXIC' : 'NASDAQ',
+    '%5EVNINDEX.VN' : 'Vietnam Index'
+}
+
+EODHD_EXCHANGE_CODES_URL = 'https://eodhd.com/api/exchanges-list/?api_token={}&fmt=json'
+EODHD_TICKERS_URL = 'https://eodhd.com/api/exchange-symbol-list/{}?api_token={}&fmt=json'
+EODHD_HISTORICAL_STOCK_URL = 'https://eodhd.com/api/eod/{}.{}?period=d&api_token={}&fmt=json'
+
+DEVAPI_URL = 'https://devapi.ai/api/v1/markets/stock/modules'
+
+ASX_API = 'https://www.asx.com.au/asx/1/share/{}/prices?interval=daily&count={}'

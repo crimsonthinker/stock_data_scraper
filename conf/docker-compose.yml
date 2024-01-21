@@ -1,0 +1,13 @@
+version: '3'
+services:
+  personal-postgres:
+    image: postgres
+    container_name: personal-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=khoa
+      - POSTGRES_PASSWORD=khoa
+    volumes:
+      - /home/khoa/repo/stock_data_scraper/db_design:/home/db_design
+      
