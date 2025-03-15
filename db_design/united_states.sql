@@ -1,5 +1,5 @@
 \c personal_stock; 
-CREATE SCHEMA vietnam;
+CREATE SCHEMA united_states;
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -16,17 +16,17 @@ SET row_security = off;
 
 
 
-CREATE TYPE personal_stock.vietnam.stock_exchange AS ENUM (
-    'VN'
+CREATE TYPE personal_stock.united_states.stock_exchange AS ENUM (
+    'US'
 );
 
-ALTER TYPE personal_stock.vietnam.stock_exchange OWNER TO :username;
+ALTER TYPE personal_stock.united_states.stock_exchange OWNER TO :username;
 
 SET default_tablespace = '';
 
 -- Default: End of day data
-CREATE TABLE personal_stock.vietnam.transaction (
-    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
+CREATE TABLE personal_stock.united_states.transaction (
+    stock_exchange personal_stock.united_states.stock_exchange NOT NULL,
     stock_code character varying(20) NOT NULL,
     date date NOT NULL,
     open double precision,
@@ -38,25 +38,25 @@ CREATE TABLE personal_stock.vietnam.transaction (
 );
 
 
-ALTER TABLE personal_stock.vietnam.transaction OWNER TO :username;
+ALTER TABLE personal_stock.united_states.transaction OWNER TO :username;
 
-ALTER TABLE ONLY personal_stock.vietnam.transaction
+ALTER TABLE ONLY personal_stock.united_states.transaction
     ADD CONSTRAINT transaction_unique_key UNIQUE (stock_exchange, stock_code, date);
 
 SET default_table_access_method = heap;
 
-CREATE TABLE personal_stock.vietnam.stock_info (
+CREATE TABLE personal_stock.united_states.stock_info (
     company_name character varying,
     stock_code character varying NOT NULL,
-    stock_exchange personal_stock.vietnam.stock_exchange NOT NULL,
+    stock_exchange personal_stock.united_states.stock_exchange NOT NULL,
     last_updated_date DATE NOT NULL,
     fundamental json
 );
 
-ALTER TABLE personal_stock.vietnam.stock_info OWNER TO :username;
+ALTER TABLE personal_stock.united_states.stock_info OWNER TO :username;
 
-ALTER TABLE ONLY personal_stock.vietnam.stock_info
+ALTER TABLE ONLY personal_stock.united_states.stock_info
     ADD CONSTRAINT stock_info_pkey PRIMARY KEY (stock_code);
 
-ALTER TABLE personal_stock.vietnam.transaction
-    ADD CONSTRAINT stock_code_f_key FOREIGN KEY (stock_code) REFERENCES personal_stock.vietnam.stock_info(stock_code) DEFERRABLE;
+ALTER TABLE personal_stock.united_states.transaction
+    ADD CONSTRAINT stock_code_f_key FOREIGN KEY (stock_code) REFERENCES personal_stock.united_states.stock_info(stock_code) DEFERRABLE;

@@ -9,7 +9,11 @@ docker exec -it personal-postgres psql -U khoa -c "CREATE DATABASE personal_stoc
 # Initiate Autralia stock
 docker exec -it personal-postgres psql -U khoa -f /home/db_design/australia.sql;
 
-# TODO: Initiate Vietnam stock
+# Initiate Vietnam stock
 docker exec -it personal-postgres psql -U khoa -f /home/db_design/vietnam.sql;
 
+# Initiate US stock
+docker exec -it personal-postgres psql -U khoa -f /home/db_design/united_states.sql;
+
+# Initiate world indices
 docker exec -it personal-postgres psql -U khoa -f /home/db_design/world.sql;

@@ -28,8 +28,22 @@ CREATE TYPE personal_stock.world.stock_index AS ENUM (
 
 ALTER TYPE personal_stock.world.stock_index OWNER TO :username;
 
+CREATE TYPE personal_stock.world.countries AS ENUM (
+    'vietnam',
+    'united_states',
+    'australia',
+    'japan',
+    'hong_kong',
+    'united_kingdom'
+);
+
+ALTER TYPE personal_stock.world.countries OWNER TO :username;
+
+
+
 CREATE TABLE personal_stock.world.stock_indexes (
     stock_index personal_stock.world.stock_index NOT NULL,
+    country personal_stock.world.countries NOT NULL,
     date date NOT NULL,
     open double precision,
     high double precision,
@@ -44,3 +58,18 @@ ALTER TABLE personal_stock.world.stock_indexes OWNER TO :username;
 
 ALTER TABLE ONLY personal_stock.world.stock_indexes
     ADD CONSTRAINT stock_index_unique_key UNIQUE (stock_index, date);
+
+
+CREATE TABLE personal_stock.world.daily_average_exchange_rate_usd_based (
+    date date NOT NULL,
+    vnd double precision,
+    aud double precision,
+    jpy double precision,
+    hkd double precision,
+    gbp double precision
+);
+
+ALTER TABLE personal_stock.world.daily_average_exchange_rate_usd_based OWNER TO :username;
+
+ALTER TABLE ONLY personal_stock.world.daily_average_exchange_rate_usd_based
+    ADD CONSTRAINT daily_average_exchange_rate_usd_based_unique_key UNIQUE (date);

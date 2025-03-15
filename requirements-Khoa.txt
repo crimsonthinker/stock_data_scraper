@@ -1,0 +1,9 @@
+beautifulsoup4
+matplotlib
+numpy
+pandas
+python-dateutil
+pyyaml
+selenium
+sqlalchemy
+talib
